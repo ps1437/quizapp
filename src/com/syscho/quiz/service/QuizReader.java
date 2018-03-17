@@ -106,13 +106,14 @@ public class QuizReader {
 
 					if (i == (QUIZ_SIZE - (TAG_SIZE - tags.size()))) {
 
-						Question generateQues = reader.generateQues(reader, rand, readQuiz, tags);
-						quiz[i] = generateQues;
+						question = reader.generateQues(reader, rand, readQuiz, tags);
+						quiz[i] = question;
 
 					} else {
 						quiz[i] = question;
-						if (outputFile != null)
-							out.write("   \n  ".getBytes());
+					}
+					if (outputFile != null)
+						out.write("   \n  ".getBytes());
 						out.write(question.getQuestion().getBytes());
 						out.write("     ".getBytes());
 						out.write(question.getQuesTag().getBytes());
@@ -120,7 +121,7 @@ public class QuizReader {
 						out.write(question.getQuesLevel().getBytes());
 						out.write("\n".getBytes());
 						readQuiz.remove(quizIndex);
-					}
+					
 				}
 				out.write("\n--------------------------------------------------------------------------------"
 						.getBytes());
