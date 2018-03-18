@@ -12,6 +12,10 @@ import java.util.StringTokenizer;
 
 import com.syscho.quiz.pojo.Question;
 
+/**
+ * @author Soni
+ *
+ */
 public class QuizReader {
 
 	private QuizReader() {
@@ -20,6 +24,9 @@ public class QuizReader {
 
 	private static QuizReader quizReader = null;
 
+	/**
+	 * @return QuizReader instance
+	 */
 	public static QuizReader getInstance() {
 
 		if (null == quizReader) {
@@ -28,27 +35,22 @@ public class QuizReader {
 		return quizReader;
 	}
 
-	/*
-	 * Sample Data
-	 *  Q1|HARD |Tag1
-	 *   Q2|EASY|Tag2 Q3|MEDIUM|Tag3 Q4|EASY|Tag4
-	 * Q5|HARD |Tag5 Q6|EASY|Tag6 Q7|HARD |Tag1 Q8|EASY|Tag2 Q9|MEDIUM|Tag3
-	 * Q10|EASY|Tag4 Q11|HARD |Tag5 Q12|EASY|Tag6 Q13|HARD |Tag1 Q14|EASY|Tag2
-	 * Q15|MEDIUM|Tag3 Q16|EASY|Tag4 Q17|HARD |Tag5
-	 * 
-	 * 
-	 * readQuiz - holding the above data in Question object with
-	 * question,quesLevel ,quesTag property
-	 */
 	private final int QUIZ_SIZE = 10;
 	private final int TAG_SIZE = 6;
 
+	/**
+	 * @param filename
+	 * @Method use to read the input file
+	 * @return List of Question
+	 */
+
+	@SuppressWarnings("hiding")
 	public List<Question> readQuiz(String fileName) {
 
 		List<Question> list = null;
 		Scanner input = null;
 		try {
-			input = new Scanner(new File("D:\\Test.txt"));
+			input = new Scanner(new File(fileName));
 
 			list = new ArrayList<Question>();
 
@@ -79,13 +81,22 @@ public class QuizReader {
 		FileOutputStream out = null;
 		Question quiz[] = null;
 		List<String> tags = null;
+
 		try {
 
 			if (outputFile != null) {
+				File file = new File(outputFile);
+				if (!file.exists()) {
+					file.createNewFile();
+				}
 				out = new FileOutputStream(outputFile);
-			} else
-				out = new FileOutputStream("D:\\output.txt");
-
+			} /*
+				 * else { File file = new File("D:\\output.txt"); if
+				 * (!file.exists()) { file.createNewFile(); } out = new
+				 * FileOutputStream(file);
+				 * 
+				 * }
+				 */
 			Random rand = new Random();
 			QuizReader reader = new QuizReader();
 
@@ -94,44 +105,50 @@ public class QuizReader {
 				quiz = new Question[10];
 				tags = new ArrayList<String>();
 
-				for (int i = 0; i < QUIZ_SIZE; i++) {
+				if (readQuiz.size() > 9) {
 
-					int quizIndex = rand.nextInt(readQuiz.size());
-					Question question = readQuiz.get(quizIndex);
+					for (int i = 0; i < QUIZ_SIZE; i++) {
 
-					if (!tags.contains(question.getQuesTag())) {
+						int quizIndex = rand.nextInt(readQuiz.size());
 
-						tags.add(question.getQuesTag());
+						Question question = readQuiz.get(quizIndex);
+
+						if (!tags.contains(question.getQuesTag())) {
+
+							tags.add(question.getQuesTag());
+						}
+
+						if (i == (QUIZ_SIZE - (TAG_SIZE - tags.size()))) {
+
+							question = reader.generateQues(reader, rand, readQuiz, tags);
+							quiz[i] = question;
+
+						} else {
+							quiz[i] = question;
+							readQuiz.remove(quizIndex);
+						}
+						if (out != null) {
+							out.write(question.getQuestion().getBytes());
+							out.write("     ".getBytes());
+							out.write(question.getQuesTag().getBytes());
+							out.write("     ".getBytes());
+							out.write(question.getQuesLevel().getBytes());
+							out.write("\n".getBytes());
+
+						}
+
+					}
+					if (null != out) {
+						out.write("\n--------------------------------------------------------------------------------"
+								.getBytes());
+					}
+					if (quiz.length == 10) {
+
+						quizCount = quizCount + 1;
 					}
 
-					if (i == (QUIZ_SIZE - (TAG_SIZE - tags.size()))) {
-
-						question = reader.generateQues(reader, rand, readQuiz, tags);
-						quiz[i] = question;
-
-					} else {
-						quiz[i] = question;
-					}
-					if (outputFile != null)
-						out.write("   \n  ".getBytes());
-						out.write(question.getQuestion().getBytes());
-						out.write("     ".getBytes());
-						out.write(question.getQuesTag().getBytes());
-						out.write("     ".getBytes());
-						out.write(question.getQuesLevel().getBytes());
-						out.write("\n".getBytes());
-						readQuiz.remove(quizIndex);
-					
 				}
-				out.write("\n--------------------------------------------------------------------------------"
-						.getBytes());
-				if (quiz.length == 10) {
-					System.out.println("tags" + tags);
-					quizCount = quizCount + 1;
-				}
-
 			}
-
 		} catch (FileNotFoundException exp) {
 
 			exp.printStackTrace();
@@ -140,8 +157,10 @@ public class QuizReader {
 			e.printStackTrace();
 		} finally {
 			try {
-				out.flush();
-				out.close();
+				if (null != out) {
+					out.flush();
+					out.close();
+				}
 			} catch (IOException e) {
 
 				e.printStackTrace();
@@ -151,17 +170,16 @@ public class QuizReader {
 		return quizCount;
 	}
 
-	public Question generateQues(QuizReader reader, Random rand, List<Question> readQuiz, List<String> tags) {
+	public Question generateQues(QuizReader reader, Random rands, List<Question> readQuiz, List<String> tags) {
 
-		int quizIndex = rand.nextInt(readQuiz.size());
+		int quizIndex = rands.nextInt(readQuiz.size());
 		Question question = readQuiz.get(quizIndex);
-
 		if (!tags.contains(question.getQuesTag())) {
 			tags.add(question.getQuesTag());
 			readQuiz.remove(quizIndex);
-		} else
-			reader.generateQues(reader, rand, readQuiz, tags);
-
-		return question;
+			return question;
+		} else {
+			return reader.generateQues(reader, rands, readQuiz, tags);
+		}
 	}
 }
