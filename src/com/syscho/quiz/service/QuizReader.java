@@ -6,9 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import com.syscho.quiz.pojo.Question;
 
@@ -80,8 +82,10 @@ public class QuizReader {
 
 		FileOutputStream out = null;
 		Question quiz[] = null;
-		List<String> tags = null;
-
+		List<String> tagsList = null;
+		int medCount = 0;
+		int easyCount = 0;
+		int hardCount = 0;
 		try {
 
 			if (outputFile != null) {
@@ -103,8 +107,9 @@ public class QuizReader {
 			for (int index = 0; index < readQuiz.size(); index++) {
 
 				quiz = new Question[10];
-				tags = new ArrayList<String>();
+				tagsList = new ArrayList<String>();
 
+				Map<String, Integer> map = new TreeMap<String, Integer>();
 				if (readQuiz.size() > 9) {
 
 					for (int i = 0; i < QUIZ_SIZE; i++) {
@@ -113,20 +118,29 @@ public class QuizReader {
 
 						Question question = readQuiz.get(quizIndex);
 
-						if (!tags.contains(question.getQuesTag())) {
+						if (map.containsKey(question.getQuesLevel())) {
 
-							tags.add(question.getQuesTag());
+							int integer = (int) map.get(question.getQuesLevel());
+							map.put(question.getQuesLevel(), (integer + 1));
+						} else {
+							map.put(question.getQuesLevel(), 1);
+
+						}
+						
+						if (!tagsList.contains(question.getQuesTag())) {
+							tagsList.add(question.getQuesTag());
 						}
 
-						if (i == (QUIZ_SIZE - (TAG_SIZE - tags.size()))) {
+						if (i == (QUIZ_SIZE - (TAG_SIZE - tagsList.size()))) {
 
-							question = reader.generateQues(reader, rand, readQuiz, tags);
+							question = reader.generateQues(reader, rand, readQuiz, tagsList, map);
 							quiz[i] = question;
 
 						} else {
 							quiz[i] = question;
 							readQuiz.remove(quizIndex);
 						}
+
 						if (out != null) {
 							out.write(question.getQuestion().getBytes());
 							out.write("     ".getBytes());
@@ -141,6 +155,7 @@ public class QuizReader {
 					if (null != out) {
 						out.write("\n--------------------------------------------------------------------------------"
 								.getBytes());
+						System.out.println("map - " + map);
 					}
 					if (quiz.length == 10) {
 
@@ -170,16 +185,32 @@ public class QuizReader {
 		return quizCount;
 	}
 
-	public Question generateQues(QuizReader reader, Random rands, List<Question> readQuiz, List<String> tags) {
-
+	public Question generateQues(QuizReader reader, Random rands, List<Question> readQuiz, List<String> tagsList,
+			Map<String, Integer> map) {
+		int levelCount = 0;
 		int quizIndex = rands.nextInt(readQuiz.size());
 		Question question = readQuiz.get(quizIndex);
-		if (!tags.contains(question.getQuesTag())) {
-			tags.add(question.getQuesTag());
-			readQuiz.remove(quizIndex);
+		if (!tagsList.contains(question.getQuesTag())) {
+
+			int integer = (int) map.get(question.getQuesLevel());
+
+			if (map.containsKey(question.getQuesLevel())) {
+				map.put(question.getQuesLevel(), (integer + 1));
+				levelCount = integer;
+			} else {
+				map.put(question.getQuesLevel(), 1);
+				levelCount = integer;
+			}
+			if (levelCount < 2) {
+				return reader.generateQues(reader, rands, readQuiz, tagsList, map);
+			} else {
+				tagsList.add(question.getQuesTag());
+				readQuiz.remove(quizIndex);
+			}
+
 			return question;
 		} else {
-			return reader.generateQues(reader, rands, readQuiz, tags);
+			return reader.generateQues(reader, rands, readQuiz, tagsList, map);
 		}
 	}
 }
