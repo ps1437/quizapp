@@ -8,7 +8,7 @@ Quiz App jar running instruction
          output file location – optional ( use to see the set of question )
         
 
-  EG : java –jar  C:\QuizApp.jar D:\input.txt E:\output.txt(optional)
+  EG : java –jar  C:\QuizApp.jar D:\inputFile.txt E:\output.txt(optional)
       • Hit the enter button
 
 Note : output.txt is optional 
